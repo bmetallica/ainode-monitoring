@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  influxdb:
+    image: influxdb:2.7
+    container_name: ainode-influxdb
+    restart: unless-stopped
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - ./influxdb-init:/docker-entrypoint-init.sh:ro
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=ainode-secret-password
+      - DOCKER_INFLUXDB_INIT_ORG=ainode
+      - DOCKER_INFLUXDB_INIT_BUCKET=monitoring
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  webapp:
+    build: .
+    container_name: ainode-webapp
+    restart: unless-stopped
+    ports:
+      - "3030:3030"
+    volumes:
+      - app-data:/app/data
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    environment:
+      - INFLUX_URL=http://influxdb:8086
+      - INFLUX_TOKEN=ainode-secret-password
+      - INFLUX_ORG=ainode
+      - INFLUX_BUCKET=monitoring
+
+volumes:
+  influxdb-data:
+  app-data:

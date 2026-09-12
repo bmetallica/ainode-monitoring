@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AINode Monitor</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>AINode Monitor</h1>
+        <div class="header-controls">
+            <select id="node-select" title="Select Node">
+                <option value="">All Nodes</option>
+            </select>
+            <input type="date" id="date-filter" title="Filter by Date">
+            <span id="mqtt-status" class="status-dot disconnected"></span>
+        </div>
+    </header>
+
+    <section id="mqtt-config" class="panel">
+        <h2>MQTT Configuration</h2>
+        <form id="mqtt-form">
+            <div class="form-row">
+                <label for="broker">Broker</label>
+                <input type="text" id="broker" placeholder="mqtt.example.com" required>
+                <label for="port">Port</label>
+                <input type="number" id="port" value="1883" min="1" max="65535">
+                <label for="user">User</label>
+                <input type="text" id="user" placeholder="optional">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="optional">
+                <label for="topic-prefix">Topic Prefix</label>
+                <input type="text" id="topic-prefix" placeholder="ainode" required>
+            </div>
+            <button type="submit">Save &amp; Connect</button>
+        </form>
+    </section>
+
+    <section id="system-panel" class="panel">
+        <h2>System Metrics</h2>
+        <div class="metrics-grid" id="system-metrics">
+            <div class="metric-card"><span class="metric-label">CPU</span><span class="metric-value" id="sys-cpu">--%</span></div>
+            <div class="metric-card"><span class="metric-label">CPU Cores</span><span class="metric-value" id="sys-cpu-cores">--</span></div>
+            <div class="metric-card"><span class="metric-label">Load (1/5/15m)</span><span class="metric-value" id="sys-load">--</span></div>
+            <div class="metric-card"><span class="metric-label">Memory</span><span class="metric-value" id="sys-mem">--%</span></div>
+            <div class="metric-card"><span class="metric-label">Mem Used/Total</span><span class="metric-value" id="sys-mem-detail">--</span></div>
+            <div class="metric-card"><span class="metric-label">Swap</span><span class="metric-value" id="sys-swap">--</span></div>
+            <div class="metric-card"><span class="metric-label">Uptime</span><span class="metric-value" id="sys-uptime">--</span></div>
+            <div class="metric-card"><span class="metric-label">Temps</span><span class="metric-value" id="sys-temps">--</span></div>
+        </div>
+        <div class="chart-container"><canvas id="cpu-chart"></canvas></div>
+        <div class="chart-container"><canvas id="mem-chart"></canvas></div>
+    </section>
+
+    <section id="gpu-panel" class="panel">
+        <h2>GPU Metrics</h2>
+        <div class="metrics-grid" id="gpu-metrics">
+            <div class="metric-card"><span class="metric-label">Utilization</span><span class="metric-value" id="gpu-util">--%</span></div>
+            <div class="metric-card"><span class="metric-label">Mem Used</span><span class="metric-value" id="gpu-mem-used">--</span></div>
+            <div class="metric-card"><span class="metric-label">Mem Total</span><span class="metric-value" id="gpu-mem-total">--</span></div>
+            <div class="metric-card"><span class="metric-label">Temperature</span><span class="metric-value" id="gpu-temp">--°C</span></div>
+        </div>
+        <div class="chart-container"><canvas id="gpu-util-chart"></canvas></div>
+        <div class="chart-container"><canvas id="gpu-mem-chart"></canvas></div>
+    </section>
+
+    <section id="models-panel" class="panel">
+        <h2>Model Metrics</h2>
+        <div class="metrics-grid" id="model-metrics">
+            <div class="metric-card"><span class="metric-label">Requests</span><span class="metric-value" id="model-requests">--</span></div>
+            <div class="metric-card"><span class="metric-label">Errors</span><span class="metric-value" id="model-errors">--</span></div>
+            <div class="metric-card"><span class="metric-label">Uptime</span><span class="metric-value" id="model-uptime">--</span></div>
+        </div>
+        <div id="model-details"></div>
+        <div class="chart-container"><canvas id="model-pie-chart"></canvas></div>
+        <div class="chart-container"><canvas id="model-bar-chart"></canvas></div>
+    </section>
+
+    <section id="cluster-panel" class="panel">
+        <h2>Cluster Overview</h2>
+        <div class="metrics-grid" id="cluster-metrics">
+            <div class="metric-card"><span class="metric-label">Nodes Total</span><span class="metric-value" id="cluster-total">--</span></div>
+            <div class="metric-card"><span class="metric-label">Nodes Online</span><span class="metric-value" id="cluster-online">--</span></div>
+            <div class="metric-card"><span class="metric-label">VRAM Total</span><span class="metric-value" id="cluster-vram">--</span></div>
+        </div>
+        <div id="cluster-nodes"></div>
+        <div class="chart-container"><canvas id="cluster-pie-chart"></canvas></div>
+    </section>
+
+    <footer>
+        <span>AINode Monitor &mdash; Data refreshes every 5s</span>
+    </footer>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
