@@ -17,7 +17,14 @@ def _load_token() -> str:
             token = f.read().strip()
             if token:
                 return token
-    return os.getenv("INFLUX_TOKEN", "ainode-secret-password")
+    token = os.getenv("INFLUX_TOKEN")
+    if token:
+        logger.warning("Using INFLUX_TOKEN from environment")
+        return token
+    raise RuntimeError(
+        f"InfluxDB token not found at {token_file} and INFLUX_TOKEN env var not set. "
+        "Ensure influxdb-init.sh ran successfully and influx-shared volume is mounted."
+    )
 
 
 client = InfluxDBClient(url=INFLUX_URL, token=_load_token(), org=INFLUX_ORG)
@@ -30,7 +37,9 @@ def write_point(measurement: str, tags: dict, fields: dict, timestamp: str, node
         p = Point(measurement).tag("node_id", node_id)
         for k, v in tags.items():
             p.tag(k, v)
-        p.fields_dict(fields).time(timestamp, WritePrecision.ms)
+        for fk, fv in fields.items():
+            p.field(fk, fv)
+        p.time(timestamp, WritePrecision.ms)
         write_api.write(INFLUX_BUCKET, INFLUX_ORG, p)
     except Exception as e:
         logger.error(f"Failed to write point to InfluxDB: {e}")
