@@ -122,6 +122,11 @@ async def history_day(date: str, node_id: str = None):
     return query_day_stats(date, node_id)
 
 
+@app.get("/api/health")
+async def health():
+    return {"status": "ok"}
+
+
 @app.get("/api/status")
 async def status():
     return {

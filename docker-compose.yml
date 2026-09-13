@@ -7,7 +7,8 @@ services:
     restart: unless-stopped
     volumes:
       - influxdb-data:/var/lib/influxdb2
-      - ./influxdb-init:/docker-entrypoint-init.sh:ro
+      - ./influxdb-init.sh:/docker-entrypoint-initdb.d/init.sh:ro
+      - influx-shared:/shared
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=admin
@@ -28,15 +29,17 @@ services:
       - "3030:3030"
     volumes:
       - app-data:/app/data
+      - influx-shared:/shared:ro
     depends_on:
       influxdb:
         condition: service_healthy
     environment:
       - INFLUX_URL=http://influxdb:8086
-      - INFLUX_TOKEN=ainode-secret-password
+      - INFLUX_TOKEN_FILE=/shared/influx_token.txt
       - INFLUX_ORG=ainode
       - INFLUX_BUCKET=monitoring
 
 volumes:
   influxdb-data:
   app-data:
+  influx-shared:

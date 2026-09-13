@@ -7,22 +7,30 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 logger = logging.getLogger(__name__)
 
 INFLUX_URL = os.getenv("INFLUX_URL", "http://localhost:8086")
-INFLUX_TOKEN = os.getenv("INFLUX_TOKEN", "ainode-secret-password")
 INFLUX_ORG = os.getenv("INFLUX_ORG", "ainode")
 INFLUX_BUCKET = os.getenv("INFLUX_BUCKET", "monitoring")
 
-client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
+def _load_token() -> str:
+    token_file = os.getenv("INFLUX_TOKEN_FILE", "/shared/influx_token.txt")
+    if os.path.exists(token_file):
+        with open(token_file, "r") as f:
+            token = f.read().strip()
+            if token:
+                return token
+    return os.getenv("INFLUX_TOKEN", "ainode-secret-password")
+
+
+client = InfluxDBClient(url=INFLUX_URL, token=_load_token(), org=INFLUX_ORG)
 write_api = client.write_api(write_options=SYNCHRONOUS)
 query_api = client.query_api()
 
 
 def write_point(measurement: str, tags: dict, fields: dict, timestamp: str, node_id: str) -> None:
     try:
-        p = (Point(measurement)
-             .tag("node_id", node_id)
-             .tag_all(tags)
-             .fields_dict(fields)
-             .time(timestamp, WritePrecision.ms))
+        p = Point(measurement).tag("node_id", node_id)
+        for k, v in tags.items():
+            p.tag(k, v)
+        p.fields_dict(fields).time(timestamp, WritePrecision.ms)
         write_api.write(INFLUX_BUCKET, INFLUX_ORG, p)
     except Exception as e:
         logger.error(f"Failed to write point to InfluxDB: {e}")
