@@ -39,7 +39,7 @@ def write_point(measurement: str, tags: dict, fields: dict, timestamp: str, node
             p.tag(k, v)
         for fk, fv in fields.items():
             p.field(fk, fv)
-        p.time(timestamp, WritePrecision.ms)
+        p.time(timestamp, WritePrecision.MS)
         write_api.write(INFLUX_BUCKET, INFLUX_ORG, p)
     except Exception as e:
         logger.error(f"Failed to write point to InfluxDB: {e}")
